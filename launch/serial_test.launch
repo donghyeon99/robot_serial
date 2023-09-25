@@ -1,0 +1,13 @@
+<launch>
+    <arg name="robot_port" default="/dev/ttyACM0" />
+    <arg name="robot_baud_rate" default="57600" />
+    <arg name="timer_rate" default="5" />
+
+    <node name="robot_serial" pkg="robot_serial" type="robot_serial" output="screen">
+
+        <param name="robot_port"      type="str"    value="$(arg robot_port)" />
+        <param name="robot_baud_rate" type="int"    value="$(arg robot_baud_rate)" />
+        <param name="timer_rate" type="double" value="$(arg timer_rate)" />
+
+    </node>
+</launch>
