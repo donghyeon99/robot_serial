@@ -1,3 +1,3 @@
 # robot_serial
 ## QT_
-make README
+make README test
