@@ -31,6 +31,7 @@
 #include <geometry_msgs/Quaternion.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <sensor_msgs/LaserScan.h>
 #include <std_msgs/Float64MultiArray.h>
 
@@ -40,7 +41,7 @@ using namespace std;
 class robotSerial{
     public:
   robotSerial() : nh_(""), nh_priv_("~"), spinner_(0), imuTimer_(), timer_(),
-  pubRemote_(),pubebimu1_(),pubebimu2_(),pubLaser1_(),pubLaser2_(),pubMindata1_(),pubMindata2_(),pubUWB_()
+  pubRemote_(),pubebimu1_(),pubebimu2_(),pubLaser1_(),pubLaser2_(),pubMindata1_(),pubMindata2_(),pubUWB_(), pubAruco_()
   {
             // Log
     ROS_INFO_STREAM("Start to initialize robofrien serial node.");
@@ -75,6 +76,8 @@ class robotSerial{
     pubLaser2_  = nh_.advertise<sensor_msgs::LaserScan>("/final/hu2/scan"      ,100);
     pubMindata1_= nh_.advertise<std_msgs::Float64MultiArray>("/final/hu1/minData"   ,100);
     pubMindata2_= nh_.advertise<std_msgs::Float64MultiArray>("/final/hu2/minData"   ,100);
+    pubAruco_   = nh_.advertise<geometry_msgs::PoseStamped>("/final/Aruco"   ,100);
+
     // Subscriber
     sub_UWB_     = nh_.subscribe( "distpozyx" ,100, &robotSerial::pozyx_callback, this);
     sub_remote   = nh_.subscribe( "humanoidState" ,100, &robotSerial::remote_callback, this);
@@ -84,7 +87,7 @@ class robotSerial{
     sub_laser2   = nh_.subscribe( "hu2/scan"      ,100, &robotSerial::laserCallback2, this);
     sub_minData1 = nh_.subscribe( "hu1/minData"   ,100, &robotSerial::minDataCallback1, this);
     sub_minData2 = nh_.subscribe( "hu2/minData"   ,100, &robotSerial::minDataCallback2, this);
-
+    sub_aruco    = nh_.subscribe( "aruco_single/pose"   ,100, &robotSerial::minArucoCallback, this);
     // Timer
     timer_ = nh_.createTimer(ros::Rate(timerRate_), &robotSerial::Timer_callback, this);
     timer_.stop();
@@ -100,6 +103,7 @@ class robotSerial{
         pubLaser2_  .shutdown();
         pubMindata1_.shutdown();
         pubMindata2_.shutdown();
+        pubAruco_   .shutdown();
         spinner_.stop();
         nh_priv_.shutdown();
         nh_.shutdown();
@@ -133,11 +137,13 @@ private:
     else if(remoteData.twist.linear.x == -1) { data = 2; }
     else if(remoteData.twist.linear.z == 1)  { data = 4; }
     else if(remoteData.twist.linear.z == -1) { data = 8; }
+    else {data = 3;}
 
     if     (remoteData.twist.angular.x == 1)  { data += 1*10;}
     else if(remoteData.twist.angular.x == -1) { data += 2*10;}
     else if(remoteData.twist.angular.z == 1)  { data += 4*10;}
     else if(remoteData.twist.angular.z == -1) { data += 8*10;}
+    else {data += 3*10;}
 
     std::string strData = std::to_string(data);
     cout<<"write data: "<<data<<endl;
@@ -160,13 +166,14 @@ private:
     }
     else  { pubRemote_ .publish(remoteZero); }
     
-    pubUWB_     .publish(uwbData   );
-    pubebimu1_  .publish(ebimu1    );
-    pubebimu2_  .publish(ebimu2    );
-    pubLaser1_  .publish(laser1    );
-    pubLaser2_  .publish(laser2    );
-    pubMindata1_.publish(minArray1 );
-    pubMindata2_.publish(minArray2 );
+    pubUWB_     .publish(uwbData  );
+    pubebimu1_  .publish(ebimu1   );
+    pubebimu2_  .publish(ebimu2   );
+    pubLaser1_  .publish(laser1   );
+    pubLaser2_  .publish(laser2   );
+    pubMindata1_.publish(minArray1);
+    pubMindata2_.publish(minArray2);
+    pubAruco_   .publish(poseData );
   }
 
   virtual void pozyx_callback(const std_msgs::String& msg) {uwbData = msg;}
@@ -181,7 +188,7 @@ private:
   // lidar minimum data
   virtual void minDataCallback1(const std_msgs::Float64MultiArray& msg) { minArray1 = msg; }
   virtual void minDataCallback2(const std_msgs::Float64MultiArray& msg) { minArray2 = msg; }
-
+  virtual void minArucoCallback(const geometry_msgs::PoseStamped& msg) { poseData = msg; }
 private:
   ros::NodeHandle nh_;
   ros::NodeHandle nh_priv_;
@@ -195,7 +202,7 @@ private:
   ros::Publisher pubLaser2_  ;
   ros::Publisher pubMindata1_;
   ros::Publisher pubMindata2_;
-
+  ros::Publisher pubAruco_   ; 
   ros::Subscriber sub_UWB_    ; 
   ros::Subscriber sub_remote  ;
   ros::Subscriber sub_ebimu1  ;
@@ -204,7 +211,7 @@ private:
   ros::Subscriber sub_laser2  ;
   ros::Subscriber sub_minData1;
   ros::Subscriber sub_minData2;
-
+  ros::Subscriber sub_aruco   ;
   ros::Timer imuTimer_; 
   ros::Timer timer_;
 
@@ -221,7 +228,7 @@ private:
   sensor_msgs::LaserScan      laser2    ;
   std_msgs::Float64MultiArray minArray1 ;
   std_msgs::Float64MultiArray minArray2 ;
-
+  geometry_msgs::PoseStamped  poseData  ;
   geometry_msgs::TwistStamped remoteZero;
 
   int cnt_ = 0;
