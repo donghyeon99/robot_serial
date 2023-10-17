@@ -55,7 +55,7 @@ class robotSerial{
       ROS_WARN_STREAM("Parameter missing: port, set default: " << port_);
     }
     if (!nh_priv_.getParam("robot_baud_rate", baud_rate_)) {
-      baud_rate_ = 115200;
+      baud_rate_ = 57600;
       ROS_WARN_STREAM(
           "Parameter missing: baud_rate, set default: " << baud_rate_);
     }
@@ -135,14 +135,14 @@ private:
     int data = 0;
     if     (remoteData.twist.linear.x == 1)  { data = 1; }
     else if(remoteData.twist.linear.x == -1) { data = 2; }
-    else if(remoteData.twist.linear.z == 1)  { data = 4; }
-    else if(remoteData.twist.linear.z == -1) { data = 8; }
+    else if(remoteData.twist.linear.z == -1)  { data = 4; }
+    else if(remoteData.twist.linear.z == 1) { data = 8; }
     else {data = 3;}
 
     if     (remoteData.twist.angular.x == 1)  { data += 1*10;}
     else if(remoteData.twist.angular.x == -1) { data += 2*10;}
-    else if(remoteData.twist.angular.z == 1)  { data += 4*10;}
-    else if(remoteData.twist.angular.z == -1) { data += 8*10;}
+    else if(remoteData.twist.angular.z == -1)  { data += 4*10;}
+    else if(remoteData.twist.angular.z == 1) { data += 8*10;}
     else {data += 3*10;}
 
     std::string strData = std::to_string(data);
@@ -180,7 +180,7 @@ private:
   virtual void remote_callback(const geometry_msgs::TwistStamped& msg){ remoteData = msg; }
 
   // imu data
-  virtual void ebimu_callback1(const nav_msgs::Odometry& msg) { ebimu2 = msg; }
+  virtual void ebimu_callback1(const nav_msgs::Odometry& msg) { ebimu1 = msg; }
   virtual void ebimu_callback2(const nav_msgs::Odometry& msg) { ebimu2 = msg; }
   // lidar scan data
   virtual void laserCallback1(const sensor_msgs::LaserScan& msg) { laser1 = msg; }

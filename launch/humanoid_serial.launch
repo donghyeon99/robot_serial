@@ -1,0 +1,46 @@
+<launch>
+    <!-- IMU -->
+    <arg name="imu_port" default="/dev/ttyUSB0" />
+    <arg name="imu_baud_rate" default="921600" />
+    <arg name="imu_rate" default="60" />
+    <arg name="cov_x" default="0.1" />
+    <arg name="cov_y" default="0.1" />
+    <arg name="cov_z" default="0.1" />
+    <arg name="robot_num" default="2" />
+    <arg name="yawSet"  default="1"/>
+    <!-- OpenCM -->
+    <arg name="robot_port" default="/dev/ttyACM0" />
+    <arg name="robot_baud_rate" default="57600" />
+    <arg name="timer_rate" default="5" />
+    <!-- Pozyx -->
+    <arg name="port" default="/dev/ttyACM1" />
+    <arg name="baud_rate" default="115200" />
+    <arg name="rate" default="20" />
+
+    <!-- IMU -->
+    <node name="ebimu_serial" pkg="ebimu_serial" type="ebimu_serial" output="screen">
+        <param name="imu_port"      type="str"    value="$(arg imu_port)" />
+        <param name="imu_baud_rate" type="int"    value="$(arg imu_baud_rate)" />
+        <param name="imu_rate"      type="double" value="$(arg imu_rate)" />
+        <param name="covariance/x" type="double" value="$(arg cov_x)" />
+        <param name="covariance/y" type="double" value="$(arg cov_y)" />
+        <param name="covariance/z" type="double" value="$(arg cov_z)" />
+
+        <param name="robot_num" type="int" value="$(arg robot_num)" />
+        <param name="yawSet" type="int" value="$(arg yawSet)" />
+    </node>
+    <!-- OpenCM -->
+    <node name="robot_serial" pkg="robot_serial" type="robot_serial" output="screen">
+        <param name="robot_port"      type="str"    value="$(arg robot_port)" />
+        <param name="robot_baud_rate" type="int"    value="$(arg robot_baud_rate)" />
+        <param name="timer_rate" type="double" value="$(arg timer_rate)" />
+    </node>
+    <!-- Pozyx -->
+    <node name="acsl_serial_pozyx" pkg="acsl_serial_pozyx" type="acsl_serial_pozyx" output="screen">
+        <param name="port" type="str" value="$(arg port)" />
+        <param name="baud_rate" type="int" value="$(arg baud_rate)" />
+        <param name="rate" type="double" value="$(arg rate)" />
+    </node>
+    
+    
+</launch>
